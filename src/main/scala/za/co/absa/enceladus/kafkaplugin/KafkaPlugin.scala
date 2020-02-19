@@ -17,17 +17,17 @@
 
 package za.co.absa.enceladus.kafkaplugin
 
-import org.apache.commons.configuration.Configuration
+import com.typesafe.config.Config
 import org.slf4j.LoggerFactory
-import za.co.absa.enceladus.api.{EnceladusPlugin, EnceladusPluginFactory}
-import za.co.absa.enceladus.model.Run
+import za.co.absa.atum.model.ControlMeasure
+import za.co.absa.enceladus.api.control.{ControlMetricsPlugin, ControlMetricsPluginFactory}
 
 /**
   * This is a stub for a custom implementation of a EnceladusPlugin
   */
-class KafkaPlugin extends EnceladusPlugin {
+class KafkaPlugin extends ControlMetricsPlugin {
 
-  override def onCheckpoint(run: Run, params: Map[String, String]): Unit = {
+  override def onCheckpoint(run: ControlMeasure, params: Map[String, String]): Unit = {
     // Send run object to Kafka
 
     /*
@@ -48,10 +48,10 @@ class KafkaPlugin extends EnceladusPlugin {
 
 }
 
-object KafkaPlugin extends EnceladusPluginFactory {
+object KafkaPlugin extends ControlMetricsPluginFactory {
   private val logger = LoggerFactory.getLogger(this.getClass)
 
-  override def apply(conf: Configuration): EnceladusPlugin = {
+  override def apply(conf: Config): ControlMetricsPlugin = {
 
     // Here an instance of Kafka Producer an be built based on the configuration passed as `conf`
 
