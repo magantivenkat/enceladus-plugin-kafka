@@ -13,22 +13,23 @@
  * limitations under the License.
  */
 
-package za.co.absa.enceladus.plugins.api.control
+package za.co.absa.enceladus.plugins.api.postprocessor
 
-import za.co.absa.atum.model.ControlMeasure
+import org.apache.spark.sql.DataFrame
 import za.co.absa.enceladus.plugins.api.Plugin
 
 /**
- * Base class for all Enceladus external plugins that process control measurements.
+ * Base class for all Enceladus external plugins that process output of Standardization/Conformance.
  */
-abstract class ControlMetricsPlugin extends Plugin {
+abstract class PostProcessor extends Plugin {
 
   /**
-   * This callback function will be invoked each time a checkpoint is created or a job status changes.
+   * This callback function will be invoked when the output data is ready.
    *
-   * @param measurements An object containing all control measurements (aka INFO file).
-   * @param params       Additional key/value parameters provided by Enceladus.
+   * @param dataFrame A DataFrame containing the output data.
+   * @param params Additional key/value parameters provided by Enceladus.
+   * @return A dataframe with post processing applied
    */
-  def onCheckpoint(measurements: ControlMeasure, params: Map[String, String]): Unit
+  def onDataReady(dataFrame: DataFrame, params: Map[String, String]): DataFrame
 
 }

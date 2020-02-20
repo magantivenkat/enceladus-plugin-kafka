@@ -13,14 +13,9 @@
  * limitations under the License.
  */
 
-package za.co.absa.enceladus.plugins.api.control
-
-import com.typesafe.config.Config
-import za.co.absa.enceladus.plugins.api.PluginFactory
+package za.co.absa.enceladus.plugins.api
 
 /**
- * Base class for Enceladus Control Metrics plugin factories.
+ * Base [marker] interface for all Enceladus plugins.
  */
-trait ControlMetricsPluginFactory extends PluginFactory[ControlMetricsPlugin] {
-  def apply(config: Config): ControlMetricsPlugin
-}
+trait Plugin
