@@ -20,7 +20,7 @@ package za.co.absa.enceladus.kafkaplugin
 import com.typesafe.config.Config
 import org.slf4j.LoggerFactory
 import za.co.absa.atum.model.ControlMeasure
-import za.co.absa.enceladus.api.control.{ControlMetricsPlugin, ControlMetricsPluginFactory}
+import za.co.absa.enceladus.plugins.api.control.{ControlMetricsPlugin, ControlMetricsPluginFactory}
 
 /**
   * This is a stub for a custom implementation of a EnceladusPlugin
