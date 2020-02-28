@@ -15,6 +15,8 @@
 
 package za.co.absa.enceladus.plugins.api.control
 
+import org.apache.avro.Schema
+import org.apache.avro.generic.GenericRecord
 import za.co.absa.atum.model.ControlMeasure
 import za.co.absa.enceladus.plugins.api.Plugin
 

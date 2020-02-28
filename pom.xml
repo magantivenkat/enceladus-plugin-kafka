@@ -35,6 +35,22 @@
         <scala.version>2.11.12</scala.version>
         <scala.maven.plugin.version>3.3.2</scala.maven.plugin.version>
         <enceladus.version>2.0.0</enceladus.version>
+        <kafka.version>5.0.1</kafka.version>
+        <typesafe.config.version>1.3.1</typesafe.config.version>
+        <atum.version>0.2.5</atum.version>
+        <sl4j.version>1.7.15</sl4j.version>
+        <maven.ant.plugin.version>1.8</maven.ant.plugin.version>
+        <quiet.scalastyle.check>true</quiet.scalastyle.check>
+        <scalastyle.configLocation>${project.basedir}/scalastyle-config.xml</scalastyle.configLocation>
+        <maven.surefire.version>2.18.1</maven.surefire.version>
+        <scalatest.version>3.0.5</scalatest.version>
+        <scalatest.maven.version>2.0.0</scalatest.maven.version>
+        <maven.scoverage.version>1.3.0</maven.scoverage.version>
+        <maven.shade.version>2.3</maven.shade.version>
+        <maven.scala.version>3.2.0</maven.scala.version>
+        <maven.sources.version>3.0.1</maven.sources.version>
+        <skip.integration.tests>true</skip.integration.tests>
+        <scalatest.embedded.kafka>2.0.0</scalatest.embedded.kafka>
     </properties>
 
     <dependencies>
@@ -46,12 +62,179 @@
             <version>${enceladus.version}</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-avro-serializer</artifactId>
+            <version>${kafka.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>${scala.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+            <version>${typesafe.config.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>za.co.absa</groupId>
+            <artifactId>atum</artifactId>
+            <version>${atum.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${sl4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${sl4j.version}</version>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/net.manub/scalatest-embedded-kafka -->
+        <dependency>
+            <groupId>net.manub</groupId>
+            <artifactId>scalatest-embedded-kafka_2.11</artifactId>
+            <version>${scalatest.embedded.kafka}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>3.2.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <sourceDirectory>src/main/scala</sourceDirectory>
         <testSourceDirectory>src/test/scala</testSourceDirectory>
+
         <plugins>
+            <!-- disable surefire -->
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven.surefire.version}</version>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+            <!-- enable scalatest -->
+            <plugin>
+                <groupId>org.scalatest</groupId>
+                <artifactId>scalatest-maven-plugin</artifactId>
+                <version>${scalatest.maven.version}</version>
+                <configuration>
+                    <reportsDirectory>${project.build.directory}/surefire-reports</reportsDirectory>
+                    <junitxml>.</junitxml>
+                    <filereports>WDF TestSuite.txt</filereports>
+                    <!--
+                        Set heap memory to 4000 MB so array conformance test and conformance
+                        end to end test could run. This can be removed later when dynamic conformance
+                        becomes more efficient
+                    -->
+                    <argLine>-Xmx4000m -Dfile.encoding=UTF-8</argLine>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>unit-tests</id>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <suffixes>(?&lt;!IntegrationSuite)</suffixes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>integration-tests</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+                        <configuration>
+                            <suffixes>(?&lt;=IntegrationSuite)</suffixes>
+                            <skipTests>${skip.integration.tests}</skipTests>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <delimiters>
+                        <delimiter>@</delimiter>
+                    </delimiters>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>${maven.shade.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                            <resource>application.conf</resource>
+                        </transformer>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                    </transformers>
+                    <filters>
+                        <filter>
+                            <artifact>*:*</artifact>
+                            <excludes>
+                                <exclude>META-INF/*.SF</exclude>
+                                <exclude>META-INF/*.DSA</exclude>
+                                <exclude>META-INF/*.RSA</exclude>
+                            </excludes>
+                        </filter>
+                    </filters>
+                    <artifactSet>
+                        <includes>
+                            <include>*:*</include>
+                        </includes>
+                        <excludes>
+                            <exclude>com.fasterxml.jackson.*:*</exclude>
+                            <exclude>org.apache.spark:*</exclude>
+                            <exclude>org.apache.hadoop:*</exclude>
+                            <exclude>org.scala-lang:scala-actors</exclude>
+                            <exclude>org.scala-lang:scala-compiler</exclude>
+                            <exclude>org.scala-lang:scala-reflect</exclude>
+                            <exclude>org.scala-lang:scala-library</exclude>
+                            <exclude>net.jpountz.lz4:*</exclude>
+                        </excludes>
+                    </artifactSet>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${maven.sources.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- the Maven Scala plugin will compile Scala source files -->
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
@@ -94,6 +277,50 @@
                             <enceladusVersion>${enceladus.version}</enceladusVersion>
                         </manifestEntries>
                     </archive>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>${maven.ant.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy</id>
+                        <phase>validate</phase>
+                        <configuration>
+                            <target>
+                                <copy file="${project.basedir}/src/main/resources/application.conf.template" tofile="${project.basedir}/src/main/resources/application.conf" overwrite="false" />
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.2.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>za.co.absa.enceladus.produce</mainClass>
+                        </manifest>
+                    </archive>
+                    <finalName>${project.artifactId}-${project.version}</finalName>
                 </configuration>
             </plugin>
         </plugins>

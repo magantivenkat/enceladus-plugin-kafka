@@ -9,6 +9,7 @@ syntax: glob
 .DS_Store
 
 # eclipse conf file
+.conf
 .settings
 .classpath
 .manager

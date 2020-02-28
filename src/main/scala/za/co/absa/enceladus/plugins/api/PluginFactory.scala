@@ -16,6 +16,9 @@
 package za.co.absa.enceladus.plugins.api
 
 import com.typesafe.config.Config
+import org.apache.avro.Schema
+import org.apache.avro.generic.GenericRecord
+import za.co.absa.atum.model.ControlMeasure
 
 /**
  * Base interface for all Enceladus plugin factories.
