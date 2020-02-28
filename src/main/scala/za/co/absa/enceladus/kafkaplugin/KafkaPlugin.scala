@@ -20,17 +20,19 @@ package za.co.absa.enceladus.kafkaplugin
 import java.io.{ByteArrayOutputStream, File, IOException}
 import java.util.Properties
 
-import com.typesafe.config.{Config}
+import com.typesafe.config.Config
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig
 import org.apache.avro.Schema
 import org.apache.avro.generic.{GenericData, GenericDatumReader, GenericRecord}
 import org.apache.avro.io.{DecoderFactory, EncoderFactory}
 import org.apache.avro.reflect.ReflectDatumWriter
+import org.apache.commons.io.IOUtils
 import org.apache.kafka.clients.CommonClientConfigs
 import org.slf4j.LoggerFactory
-import za.co.absa.atum.model.{ControlMeasure}
+import za.co.absa.atum.model.ControlMeasure
 import za.co.absa.enceladus.plugins.api.control.{ControlMetricsPlugin, ControlMetricsPluginFactory}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerConfig, ProducerRecord}
+
 import scala.util.control.NonFatal
 
 /**
@@ -41,8 +43,9 @@ class KafkaPlugin(props:Properties,topic_name:String) extends ControlMetricsPlug
   private val logger = LoggerFactory.getLogger(this.getClass)
 
   override def onCheckpoint(run: ControlMeasure, params: Map[String, String]):Unit = {
-    val path = new File(params("schemaFile"))
-    val schema = new Schema.Parser().parse(path)
+    val schemaJson = IOUtils.toString(this.getClass.getResourceAsStream("/info_file_avro_schema.avsc"), "UTF-8")
+
+    val schema = new Schema.Parser().parse(/*path*/schemaJson)
     val genericRecord: GenericRecord = new GenericData.Record(schema)
 
     // Send ControlMeasure object to Kafka
@@ -61,10 +64,11 @@ class KafkaPlugin(props:Properties,topic_name:String) extends ControlMetricsPlug
       val cptSize = run.checkpoints.size
       val itemSchemaControls = arrayControlsSchema.getElementType
       var i = 0
-      var j = 0
+
       while (i < cptSize) {
         val ctrlSize = run.checkpoints(i).controls.size
         val arrayControls = new GenericData.Array[GenericRecord](ctrlSize, arrayControlsSchema)
+        var j = 0
         while (j < ctrlSize) {
           val nestedControls: GenericRecord = new GenericData.Record(itemSchemaControls)
           nestedControls.put("controlName", run.checkpoints(i).controls(j).controlName)
