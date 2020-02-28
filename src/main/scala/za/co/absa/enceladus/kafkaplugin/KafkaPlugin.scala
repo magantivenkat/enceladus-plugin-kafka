@@ -45,7 +45,7 @@ class KafkaPlugin(props:Properties,topic_name:String) extends ControlMetricsPlug
   override def onCheckpoint(run: ControlMeasure, params: Map[String, String]):Unit = {
     val schemaJson = IOUtils.toString(this.getClass.getResourceAsStream("/info_file_avro_schema.avsc"), "UTF-8")
 
-    val schema = new Schema.Parser().parse(/*path*/schemaJson)
+    val schema = new Schema.Parser().parse(schemaJson)
     val genericRecord: GenericRecord = new GenericData.Record(schema)
 
     // Send ControlMeasure object to Kafka
