@@ -13,7 +13,6 @@ object produce{
     val params: Map[String,String]=Map("reportDate" -> "2020-02-21"
       , "reportVersion" -> "1"
       ,"runStatus"->"Completed"
-      ,"schemaFile"->args(1)
       ,"kafkaProp"->"kafka")
 
     val additionalInfo=Map("key1"->"test","value1"->"test")
