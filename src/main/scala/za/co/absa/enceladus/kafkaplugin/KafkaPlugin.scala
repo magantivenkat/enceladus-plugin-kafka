@@ -123,8 +123,8 @@ class KafkaPlugin(props:Properties,topic_name:String) extends ControlMetricsPlug
       metadata.put("informationDate", run.metadata.informationDate)
       metadata.put("additionalInfo",arrayAddInfo)
 
-      genericRecord.put("datasetName", run.metadata.sourceApplication)
-      genericRecord.put("datasetVersion", run.metadata.version)
+      genericRecord.put("datasetName", params("datasetName"))
+      genericRecord.put("datasetVersion", params("datasetVersion").toInt)
       genericRecord.put("reportDate", params("reportDate"))
       genericRecord.put("reportVersion", params("reportVersion").toInt)
       genericRecord.put("runStatus", params("runStatus"))
@@ -137,11 +137,11 @@ class KafkaPlugin(props:Properties,topic_name:String) extends ControlMetricsPlug
       val producer = new KafkaProducer[GenericRecord, GenericRecord](props)
 
       try {
-
-        val keySchemaString = """{"type": "record", "name": "infoKey", "fields": [{"type": "string", "name": "key"}]}}"""
-        val avroKeySchema = new Schema.Parser().parse(keySchemaString)
+        val keySchemaJson = IOUtils.toString(this.getClass.getResourceAsStream("/info_file_avro_schema_key.avsc"), "UTF-8")
+        val avroKeySchema = new Schema.Parser().parse(keySchemaJson)
+        logger.info("avroKeySchema"+avroKeySchema)
         val thisKeyRecord = new GenericData.Record(avroKeySchema)
-        thisKeyRecord.put("key", run.metadata.sourceApplication)
+        thisKeyRecord.put("datasetName", params("datasetName"))
 
         val reflectDatumWriter = new ReflectDatumWriter[Object](schema)
         val genericRecordReader = new GenericDatumReader[Object](schema)
@@ -183,12 +183,16 @@ object KafkaPlugin extends ControlMetricsPluginFactory {
       val KEY_SERIALIZER_CLASS_CONFIG = conf.getString("kafka.key.serializer")
       val VALUE_SERIALIZER_CLASS_CONFIG = conf.getString("kafka.value.serializer")
       val TOPIC_NAME = conf.getString("kafka.topic.name")
+      val SECURITY_PROTOCOL = conf.getString("kafka.security.protocol")
+      val SASL_MECHANISM = conf.getString("kafka.sasl.mechanism")
 
       props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOTSTRAP_SERVERS_CONFIG)
       props.put(AbstractKafkaAvroSerDeConfig.SCHEMA_REGISTRY_URL_CONFIG, SCHEMA_REGISTRY_URL_CONFIG)
       props.put(CommonClientConfigs.CLIENT_ID_CONFIG, CLIENT_ID_CONFIG)
       props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, KEY_SERIALIZER_CLASS_CONFIG)
       props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, VALUE_SERIALIZER_CLASS_CONFIG)
+      props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG,SECURITY_PROTOCOL)
+      props.put("sasl.mechanism",SASL_MECHANISM)
 
       logger.info("Building Kafka plugin")
 
