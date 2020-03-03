@@ -1,0 +1,11 @@
+{
+  "name": "info_key",
+  "type": "record",
+  "namespace": "co.za.absa.dataquality.avro.schema.key-infofile",
+  "fields": [
+    {
+      "name": "datasetName",
+      "type": "string"
+    }
+  ]
+}

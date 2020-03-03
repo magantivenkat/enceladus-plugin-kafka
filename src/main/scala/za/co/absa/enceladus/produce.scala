@@ -8,9 +8,10 @@ object produce{
 
   def main(args: Array[String]): Unit = {
 
-
     val conf = ConfigFactory.load("application.conf")
-    val params: Map[String,String]=Map("reportDate" -> "2020-02-21"
+    val params: Map[String,String]=Map("datasetName" -> "PAYM_NAEDO"
+      ,"datasetVersion"->"1"
+      ,"reportDate" -> "2020-02-21"
       , "reportVersion" -> "1"
       ,"runStatus"->"Completed"
       ,"kafkaProp"->"kafka")
